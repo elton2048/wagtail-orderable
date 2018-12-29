@@ -13,7 +13,7 @@ pip install wagtail-orderable
 
 ### Settings
 In your settings file, add `wagtailorderable` to `INSTALLED_APPS`:
-```
+```python
 INSTALLED_APPS = [
     # ...
     'wagtailorderable',
@@ -24,7 +24,7 @@ INSTALLED_APPS = [
 ### Usage
 
 To apply the orderable feature, extends your model with `Orderable`.
-```
+```python
 from django.db import models
 
 from wagtailorderable.models import Orderable
@@ -35,7 +35,7 @@ class YourModel(models.Model, Orderable):
 ```
 
 Of course you can apply it to `Page` model from Wagtail.
-```
+```python
 from wagtail.core import fields
 from wagtail.core.models import Page
 
@@ -49,7 +49,7 @@ class YourModel(Page, Orderable):
 Note that `Orderable` also exists in `wagtail.core.models`, **DO NOT** use that as the mixins requires model from the same package.
 
 To apply the feature support in admin panel. In `wagtail_hooks.py`:
-```
+```python
 from wagtail.contrib.modeladmin.options import (
     ModelAdmin, modeladmin_register)
 
@@ -67,10 +67,10 @@ modeladmin_register(YourModelAdmin)
 ```
 
 Last coolect corresponding static file by
-```
+```python
 python manage.py collectstatic
 ```
-in your project
+in your project.
 
 ### Acknowledgement
 Most of the contribution comes from this [commit](https://github.com/rkhleics/wagtail/commit/08df07689af1096ce4a6fa96325dbfb7fab9240d) which attempts to integrate the solution in Wagtail project. Though it is not being used in Wagtail now it provides great skeleton for the feature which helps me created this mixin.
