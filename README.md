@@ -23,7 +23,7 @@ INSTALLED_APPS = [
 
 ### Usage
 
-To apply the orderable feature, extends your model with `Orderable`.
+To apply the orderable feature, extend your model with `Orderable`.
 ```python
 from django.db import models
 
@@ -34,7 +34,7 @@ class YourModel(models.Model, Orderable):
     title = models.CharField(max_length=200)
 ```
 
-Of course you can apply it to `Page` model from Wagtail.
+Of course you can apply it to Wagtail's `Page` model.
 ```python
 from wagtail.core import fields
 from wagtail.core.models import Page
@@ -46,7 +46,7 @@ class YourModel(Page, Orderable):
     description = fields.RichTextField(blank=True)
 ```
 
-Note that `Orderable` also exists in `wagtail.core.models`, **DO NOT** use that as the mixins requires model from the same package.
+Note that `Orderable` also exists in `wagtail.core.models`, **DO NOT** use that as the mixins require the model from the same package.
 
 To apply the feature support in admin panel. In `wagtail_hooks.py`:
 ```python
@@ -66,7 +66,7 @@ class YourModelAdmin(ModelAdmin, OrderableMixin):
 modeladmin_register(YourModelAdmin)
 ```
 
-Last coolect corresponding static file by
+Finally, collect the corresponding static file by running
 ```python
 python manage.py collectstatic
 ```
