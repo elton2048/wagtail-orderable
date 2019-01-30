@@ -58,7 +58,7 @@ from wagtailorderable.modeladmin.mixins import OrderableMixin
 from .models import YourModel
 
 
-class YourModelAdmin(ModelAdmin, OrderableMixin):
+class YourModelAdmin(OrderableMixin, ModelAdmin):
     model = YourModel
     
     ordering = ['sort_order']
