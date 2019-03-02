@@ -91,7 +91,13 @@ class OrderableMixin(object):
         if not self.permission_helper.user_can_edit_obj(request.user, obj_to_move):
             raise PermissionDenied
         position = request.GET.get('position', self.model.objects.count())
-        old_position = obj_to_move.sort_order
+
+        # if sort_order doens't exist on existing entry
+        if obj_to_move.sort_order:
+            old_position = obj_to_move.sort_order
+        else:
+            old_position = -1
+        
         if int(position) < old_position:
             self.model.objects.filter(
                 sort_order__lt=old_position,
