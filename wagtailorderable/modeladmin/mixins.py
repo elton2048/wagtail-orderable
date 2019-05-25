@@ -104,26 +104,33 @@ class OrderableMixin(object):
         # determine the destination position
         after, after_position = self._get_position(request.GET.get('after'))
         before, before_position = self._get_position(request.GET.get('before'))
-        if after_position:
+        if after_position and before_position:
             position = after_position
-            response = HttpResponse('"%s" was moved after "%s"' % (obj_to_move, after))
+            response = HttpResponse('"%s" moved after "%s" ("before" parameter ignored)' % (obj_to_move, after))
+        elif after_position:
+            position = after_position
+            response = HttpResponse('"%s" moved after "%s"' % (obj_to_move, after))
         elif before_position:
             position = before_position
-            response = HttpResponse('"%s" was moved before "%s"' % (obj_to_move, before))
+            response = HttpResponse('"%s" moved before "%s"' % (obj_to_move, before))
         else:
             position = 0
-            response = HttpResponse('"%s" was moved to be first orderable' % obj_to_move)
+            response = HttpResponse('"%s" moved to be first orderable' % obj_to_move)
 
         # move the object from old_position to new_position
-        if int(position) < old_position:
+        if position < old_position:
+            if position == after_position:
+                position += 1
             self.model.objects.filter(
                 sort_order__lt=old_position,
-                sort_order__gte=int(position)
+                sort_order__gte=position
             ).update(sort_order=F('sort_order') + 1)
-        elif int(position) > old_position:
+        elif position > old_position:
+            if position == before_position:
+                position -= 1
             self.model.objects.filter(
                 sort_order__gt=old_position,
-                sort_order__lte=int(position)
+                sort_order__lte=position
             ).update(sort_order=F('sort_order') - 1)
 
         obj_to_move.sort_order = position
