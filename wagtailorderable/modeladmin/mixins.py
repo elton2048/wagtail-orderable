@@ -108,7 +108,7 @@ class OrderableMixin(object):
             position = after_position
             response = HttpResponse('"%s" was moved after "%s"' % (obj_to_move, after))
         elif before_position:
-            position = before_position - 1
+            position = before_position
             response = HttpResponse('"%s" was moved before "%s"' % (obj_to_move, before))
         else:
             position = 0
