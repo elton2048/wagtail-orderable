@@ -82,6 +82,10 @@ class OrderableMixin(object):
     index_order.admin_order_field = 'sort_order'
     index_order.short_description = _('Order')
 
+    def _get_position(self, pk):
+        obj = pk and self.model.objects.get(pk=pk)
+        return obj, obj and obj.sort_order
+
     def reorder_view(self, request, instance_pk):
         """
         Very simple view functionality for updating the `sort_order` values
@@ -90,14 +94,27 @@ class OrderableMixin(object):
         obj_to_move = get_object_or_404(self.model, pk=instance_pk)
         if not self.permission_helper.user_can_edit_obj(request.user, obj_to_move):
             raise PermissionDenied
-        position = request.GET.get('position', self.model.objects.count())
 
-        # if sort_order doens't exist on existing entry
+        # if sort_order doesn't exist on existing entry
         if obj_to_move.sort_order:
             old_position = obj_to_move.sort_order
         else:
             old_position = -1
-        
+
+        # determine the destination position
+        after, after_position = self._get_position(request.GET.get('after'))
+        before, before_position = self._get_position(request.GET.get('before'))
+        if after_position:
+            position = after_position
+            response = HttpResponse('"%s" was moved after "%s"' % (obj_to_move, after))
+        elif before_position:
+            position = before_position - 1
+            response = HttpResponse('"%s" was moved before "%s"' % (obj_to_move, before))
+        else:
+            position = 0
+            response = HttpResponse('"%s" was moved to be first orderable' % obj_to_move)
+
+        # move the object from old_position to new_position
         if int(position) < old_position:
             self.model.objects.filter(
                 sort_order__lt=old_position,
@@ -108,9 +125,10 @@ class OrderableMixin(object):
                 sort_order__gt=old_position,
                 sort_order__lte=int(position)
             ).update(sort_order=F('sort_order') - 1)
+
         obj_to_move.sort_order = position
         obj_to_move.save()
-        return HttpResponse('Reordering was successful')
+        return response
 
     def get_index_view_extra_css(self):
         css = super(OrderableMixin, self).get_index_view_extra_css()
