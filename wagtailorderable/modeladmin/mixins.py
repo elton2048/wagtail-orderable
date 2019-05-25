@@ -83,8 +83,11 @@ class OrderableMixin(object):
     index_order.short_description = _('Order')
 
     def _get_position(self, pk):
-        obj = pk and self.model.objects.get(pk=pk)
-        return obj, obj and obj.sort_order
+        try:
+            obj = self.model.objects.get(pk=pk)
+            return obj.sort_order, obj
+        except self.model.DoesNotExist:
+            return None, None
 
     def reorder_view(self, request, instance_pk):
         """
@@ -95,27 +98,21 @@ class OrderableMixin(object):
         if not self.permission_helper.user_can_edit_obj(request.user, obj_to_move):
             raise PermissionDenied
 
-        # if sort_order doesn't exist on existing entry
-        if obj_to_move.sort_order:
-            old_position = obj_to_move.sort_order
-        else:
-            old_position = -1
+        # determine the start position
+        old_position = obj_to_move.sort_order or -1
 
         # determine the destination position
-        after, after_position = self._get_position(request.GET.get('after'))
-        before, before_position = self._get_position(request.GET.get('before'))
-        if after_position and before_position:
+        after_position, after = self._get_position(request.GET.get('after'))
+        before_position, before = self._get_position(request.GET.get('before'))
+        if after_position:
             position = after_position
-            response = HttpResponse('"%s" moved after "%s" ("before" parameter ignored)' % (obj_to_move, after))
-        elif after_position:
-            position = after_position
-            response = HttpResponse('"%s" moved after "%s"' % (obj_to_move, after))
+            response = '"%s" moved after "%s"' % (obj_to_move, after)
         elif before_position:
             position = before_position
-            response = HttpResponse('"%s" moved before "%s"' % (obj_to_move, before))
+            response = '"%s" moved before "%s"' % (obj_to_move, before)
         else:
             position = 0
-            response = HttpResponse('"%s" moved to be first orderable' % obj_to_move)
+            response = '"%s" moved to the first position' % obj_to_move
 
         # move the object from old_position to new_position
         if position < old_position:
@@ -135,7 +132,7 @@ class OrderableMixin(object):
 
         obj_to_move.sort_order = position
         obj_to_move.save()
-        return response
+        return HttpResponse(response)
 
     def get_index_view_extra_css(self):
         css = super(OrderableMixin, self).get_index_view_extra_css()
