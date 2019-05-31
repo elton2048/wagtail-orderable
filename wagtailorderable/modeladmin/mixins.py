@@ -31,6 +31,8 @@ class OrderableMixin(object):
         """Add `index_order` as the first column to results"""
         list_display = super(OrderableMixin, self).get_list_display(request)
         order_col_prepend = ['index_order']
+        if isinstance(list_display, tuple):
+            order_col_prepend = tuple(order_col_prepend)
         return order_col_prepend + list_display
 
     def get_list_display_add_buttons(self, request):
