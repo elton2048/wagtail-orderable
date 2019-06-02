@@ -75,8 +75,7 @@ class OrderableMixin(object):
     def index_order(self, obj):
         """Content for the `index_order` column"""
         return mark_safe(
-            '<div class="handle icon icon-grip text-replace" '
-            'aria-hidden="true">Drag</div>'
+            '<div class="handle icon icon-grip text-replace ui-sortable-handle">Drag</div>'
         )
     index_order.admin_order_field = 'sort_order'
     index_order.short_description = _('Order')
