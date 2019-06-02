@@ -69,7 +69,7 @@ modeladmin_register(YourModelAdmin)
 Finally, collect the corresponding static file by running
 ```python
 python manage.py collectstatic
-``**
+```
 in your project.
 
 ### Change Log
