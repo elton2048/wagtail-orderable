@@ -69,8 +69,15 @@ modeladmin_register(YourModelAdmin)
 Finally, collect the corresponding static file by running
 ```python
 python manage.py collectstatic
-```
+``**
 in your project.
+
+### Change Log
+1.0.1
+---
+- `get_list_display` handles any iterable
+- Support for filters in ModelAdmin
+- Style updated
 
 ### Acknowledgement
 Most of the contribution comes from this [commit](https://github.com/rkhleics/wagtail/commit/08df07689af1096ce4a6fa96325dbfb7fab9240d) which attempts to integrate the solution in Wagtail project. Though it is not being used in Wagtail now it provides great skeleton for the feature which helps me created this mixin.

@@ -23,7 +23,7 @@ CLASSIFIERS = [
 
 setup(
     name='wagtail-orderable',
-    version='1.0.0',
+    version='1.0.1',
     description='Orderable support for Wagtail',
     long_description="Provides drag-and-drop support ordering support to the ModelAdmin listing view.",
     author='Elton Lee & Andy Babic',
