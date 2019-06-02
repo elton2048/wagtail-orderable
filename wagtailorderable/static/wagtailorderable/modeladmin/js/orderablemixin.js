@@ -15,8 +15,9 @@ $(function() {
             items: "> tr",
             axis: "y",
             placeholder: "dropzone",
-            start: function(){
+            start: function(event, ui){
                 $(this).parent().addClass('sorting');
+                $(this).data('idx', ui.item.index());
             },
             stop: function(event, ui){
                 $(this).parent().removeClass('sorting');
@@ -25,15 +26,28 @@ $(function() {
                 var movedElement = $(ui.item[0]);
                 var movedObjectId = movedElement.data('object-pk');
                 var movedObjectTitle = movedElement.find('td.field-index_order').data('title');
-                var newPosition = $(movedElement).prevAll().length + 1;
 
-                // Build url
-                var url = "reorder/" + movedObjectId + "/?position=" + newPosition;
+                // Build params
+                var params;
+                if ($(this).data('idx') < ui.item.index()) {
+                    var after = $(movedElement).prev().data('object-pk');
+                    if (after) {
+                        params= "?after=" + after;
+                    }
+                } else if ($(this).data('idx') > ui.item.index()){
+                    var before = $(movedElement).next().data('object-pk');
+                    if (before) {
+                        params = "?before=" + before;
+                    }
+                }
 
                 // Post
-                $.get(url, function(){
-                    addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
-                });
+                if (params) {
+                    var url = "reorder/" + movedObjectId + '/' + params;
+                    $.get(url, function(){
+                        addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
+                    });
+                }
             }
         });
         listing_tbody.disableSelection();
