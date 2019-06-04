@@ -1,7 +1,8 @@
 from django.conf.urls import url
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.db.models import F
-from django.http.response import HttpResponse
+from django.db import transaction
+from django.db.models import F, Count
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -87,30 +88,32 @@ class OrderableMixin(object):
         except self.model.DoesNotExist:
             return None, None
 
+    @transaction.atomic
     def reorder_view(self, request, instance_pk):
         """
         Very simple view functionality for updating the `sort_order` values
         for objects after a row has been dragged to a new position.
         """
+        self.fix_duplicate_positions()
+
         obj_to_move = get_object_or_404(self.model, pk=instance_pk)
         if not self.permission_helper.user_can_edit_obj(request.user, obj_to_move):
             raise PermissionDenied
 
         # determine the start position
-        old_position = obj_to_move.sort_order or -1
+        old_position = obj_to_move.sort_order or 0
 
         # determine the destination position
         after_position, after = self._get_position(request.GET.get('after'))
         before_position, before = self._get_position(request.GET.get('before'))
-        if after_position:
-            position = after_position
+        if after:
+            position = after_position or 0
             response = '"%s" moved after "%s"' % (obj_to_move, after)
-        elif before_position:
-            position = before_position
+        elif before:
+            position = before_position or 0
             response = '"%s" moved before "%s"' % (obj_to_move, before)
         else:
-            position = 0
-            response = '"%s" moved to the first position' % obj_to_move
+            return HttpResponseBadRequest('"%s" not moved' % obj_to_move)
 
         # move the object from old_position to new_position
         if position < old_position:
@@ -129,8 +132,22 @@ class OrderableMixin(object):
             ).update(sort_order=F('sort_order') - 1)
 
         obj_to_move.sort_order = position
-        obj_to_move.save()
+        obj_to_move.save(update_fields=['sort_order'])
         return HttpResponse(response)
+
+    @transaction.atomic
+    def fix_duplicate_positions(self):
+        """
+        Low level function which updates each element to have sequential sort_order values if the database contains any
+        duplicate values (gaps are ok).
+        """
+        duplicates = self.model.objects.values(
+            'sort_order'
+        ).annotate(sort_order_count=Count('sort_order')).filter(sort_order_count__gt=1)
+
+        if duplicates:
+            for n, obj in enumerate(self.model.objects.values('id')):
+                self.model.objects.filter(id=obj['id']).update(sort_order=n)
 
     def get_index_view_extra_css(self):
         css = super(OrderableMixin, self).get_index_view_extra_css()

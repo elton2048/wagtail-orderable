@@ -35,7 +35,7 @@ $(function() {
                     if (after) {
                         params= "?after=" + after;
                     }
-                } else if ($(this).data('idx') > ui.item.index()){
+                } else if ($(this).data('idx') > ui.item.index()) {
                     var before = $(movedElement).next().data('object-pk');
                     if (before) {
                         params = "?before=" + before;
@@ -44,9 +44,15 @@ $(function() {
 
                 // Post
                 if (params) {
-                    var url = "reorder/" + movedObjectId + '/' + params;
-                    $.get(url, function(){
-                        addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
+                    $.ajax({
+                        url: 'reorder/' + movedObjectId + '/' + params,
+                        success: function(data, textStatus, xhr) {
+                            addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
+                        },
+                        error: function(data, textStatus, xhr) {
+                            addMessage('error', '"' + movedObjectTitle + '" could not be moved.');
+                            listing_tbody.sortable("cancel");
+                        }
                     });
                 }
             }
