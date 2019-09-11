@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Max
 
 
 class Orderable(models.Model):
@@ -15,8 +16,8 @@ class Orderable(models.Model):
     sort_order_field = 'sort_order'
 
     def save(self, *args, **kwargs):
-        if self.pk == None:
-            self.sort_order = self.__class__.objects.count() + 1
+        if self.pk is None:
+            self.sort_order = self.__class__.objects.aggregate(Max('sort_order'))['sort_order__max'] + 1
         super().save(*args, **kwargs)
 
     class Meta:
