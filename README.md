@@ -73,6 +73,10 @@ python manage.py collectstatic
 in your project.
 
 ### Change Log
+1.0.2
+---
+- Fix `sort_order` duplication for items
+- Fix wrong `return` syntax
 1.0.1
 ---
 - `get_list_display` handles any iterable
