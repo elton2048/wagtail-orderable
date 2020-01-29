@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.wagtailcore.models import Orderable
+from wagtail.core.models import Orderable
 
 class OrderableMixin(object):
     """
@@ -25,7 +25,7 @@ class OrderableMixin(object):
             raise ImproperlyConfigured(
                 u"You are using OrderableMixin for your '%s' class, but the "
                 "django model specified is not a sub-class of "
-                "'wagtail.wagtailcore.models.Orderable." %
+                "'wagtail.core.models.Orderable." %
                 self.__class__.__name__,)
 
     def get_list_display(self, request):
