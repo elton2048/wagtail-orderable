@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from wagtailorderable.models import Orderable
+from wagtail.wagtailcore.models import Orderable
 
 class OrderableMixin(object):
     """
