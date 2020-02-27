@@ -60,9 +60,9 @@ from .models import YourModel
 
 class YourModelAdmin(OrderableMixin, ModelAdmin):
     model = YourModel
-    
+
     ordering = ['sort_order']
-    
+
 modeladmin_register(YourModelAdmin)
 ```
 
@@ -73,6 +73,10 @@ python manage.py collectstatic
 in your project.
 
 ### Change Log
+1.0.3
+---
+- Fix `TypeError` when creating the first Orderable object (#21)
+
 1.0.2
 ---
 - Fix `sort_order` duplication for items
