@@ -30,7 +30,7 @@ from django.db import models
 from wagtailorderable.models import Orderable
 
 
-class YourModel(models.Model, Orderable):
+class YourModel(Orderable):
     title = models.CharField(max_length=200)
 ```
 
