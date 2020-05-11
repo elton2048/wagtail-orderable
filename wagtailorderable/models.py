@@ -17,9 +17,22 @@ class Orderable(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk is None:
-            sort_order_max = self.__class__.objects.aggregate(Max('sort_order'))['sort_order__max'] or 0
-            self.sort_order = sort_order_max + 1
+            setattr(self, self.sort_order_field, self.get_sort_order_max() + 1)
         super().save(*args, **kwargs)
+
+    def get_sort_order_max(self):
+        """
+        Method used to get the max sort_order when a new instance is created.
+        If you order depends on a FK (eg. order of books for a specific author),
+        you can override this method to filter on the FK.
+        ```
+        def get_sort_order_max(self):
+            qs = self.__class__.objects.filter(author=self.author)
+            return qs.aggregate(Max(self.sort_order_field))['sort_order__max'] or 0
+        ```
+        """
+        qs = self.__class__.objects.all()
+        return qs.aggregate(Max(self.sort_order_field))['%s__max' % self.sort_order_field] or 0
 
     class Meta:
         abstract = True
