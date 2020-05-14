@@ -1,19 +1,21 @@
 from django.conf.urls import url
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured, PermissionDenied
-from django.db import transaction
+from django.db import connections, transaction
 from django.db.models import F, Count
+from django.db.models.expressions import Case, Value, When
+from django.db.models.functions import Cast
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
+from ..signal import pre_reorder, post_reorder
 
 class OrderableMixinMetaClass(type):
     """
     index_order method needs to be completed with an `admin_order_field` but as sort_order_field
     is not yet known in the class, we need this meta class to get it from other final class args
     """
-    def __new__(meta, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):
         model = attrs.get('model', None)
         sort_order_field = attrs.get('sort_order_field', None)
         if model and not sort_order_field:
@@ -38,7 +40,7 @@ class OrderableMixinMetaClass(type):
                 index_order.admin_order_field = sort_order_field
                 index_order.short_description = _('Order')
                 attrs['index_order'] = index_order
-        return type.__new__(meta, name, bases, attrs)
+        return type.__new__(cls, name, bases, attrs)
 
 
 class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
@@ -52,10 +54,8 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
 
     def __init__(self, parent=None):
         super(OrderableMixin, self).__init__(parent)
-        """
-        Don't allow initialisation unless self.model subclasses
-        `wagtail.wagtailcore.models.Orderable`
-        """
+        # Don't allow initialisation unless self.model subclasses
+        # `wagtail.wagtailcore.models.Orderable` or sort_order_field is set
         if not self.sort_order_field and hasattr(self.model, 'sort_order_field'):
             self.sort_order_field = getattr(self.model, 'sort_order_field', None)
 
@@ -148,7 +148,7 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
         Very simple view functionality for updating the `sort_order` values
         for objects after a row has been dragged to a new position.
         """
-        self.fix_duplicate_positions()
+        self.fix_duplicate_positions(request)
 
         obj_to_move = get_object_or_404(self.model, pk=instance_pk)
         if not self.permission_helper.user_can_edit_obj(request.user, obj_to_move):
@@ -162,46 +162,106 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
         before_position, before = self._get_position(request.GET.get('before'))
         if after:
             position = after_position or 0
-            response = '"%s" moved after "%s"' % (obj_to_move, after)
+            response = _('"%s" moved after "%s"') % (obj_to_move, after)
         elif before:
             position = before_position or 0
-            response = '"%s" moved before "%s"' % (obj_to_move, before)
+            response = _('"%s" moved before "%s"') % (obj_to_move, before)
         else:
-            return HttpResponseBadRequest('"%s" not moved' % obj_to_move)
+            return HttpResponseBadRequest(_('"%s" not moved') % obj_to_move)
 
+        qs = self.get_filtered_queryset(request)
+        signal_kwargs = {'sender': self.__class__, 'queryset': qs}
         # move the object from old_position to new_position
         if position < old_position:
             if position == after_position:
                 position += 1
-            self.model.objects.filter(**{
-                '%s__lt' % self.sort_order_field: old_position,
-                '%s__gte' % self.sort_order_field: position
-            }).update(**{self.sort_order_field:F(self.sort_order_field) + 1})
+            qs = qs.filter(**{'%s__lt' % self.sort_order_field: old_position,
+                              '%s__gte' % self.sort_order_field: position})
+            update_value = F(self.sort_order_field) + 1
+            signal_kwargs.update({'from_order': position, 'to_position': old_position + 1})
         elif position > old_position:
             if position == before_position:
                 position -= 1
-            self.model.objects.filter(**{
-                '%s__gt' % self.sort_order_field: old_position,
-                '%s__lte' % self.sort_order_field: position
-            }).update(**{self.sort_order_field: F(self.sort_order_field) - 1})
+            qs = qs.filter(**{'%s__gt' % self.sort_order_field: old_position,
+                              '%s__lte' % self.sort_order_field: position})
+            update_value = F(self.sort_order_field) - 1
+            signal_kwargs.update({'from_order': old_position - 1, 'to_position': position})
 
-        setattr(obj_to_move, self.sort_order_field, position)
-        obj_to_move.save(update_fields=[self.sort_order_field])
+        # let's signal we will reorder some instances.
+        pre_reorder.send(**signal_kwargs)
+        # reorder all previous|next
+        qs.update(**{self.sort_order_field: update_value})
+        # reorder current one
+        self.model.objects.filter(pk=obj_to_move.pk)\
+                          .update(**{self.sort_order_field: position})
+        # let's signal we just reorder some instances.
+        post_reorder.send(**signal_kwargs)
         return HttpResponse(response)
 
+    def get_filtered_queryset(self, request):
+        parent_field = getattr(self, 'parent_field', None)
+        if not parent_field or parent_field not in request.GET:
+            return self.get_queryset(request)
+        return self.get_queryset(request).filter(**{parent_field: request.GET.get(parent_field)})
+
     @transaction.atomic
-    def fix_duplicate_positions(self):
+    def fix_duplicate_positions(self, request):
         """
         Low level function which updates each element to have sequential sort_order values
         if the database contains any duplicate values (gaps are ok).
         """
-        duplicates = self.model.objects.values(
-            self.sort_order_field
-        ).annotate(index_order_count=Count(self.sort_order_field)).filter(index_order_count__gt=1)
+        qs = self.get_filtered_queryset(request)
+        first_duplicate = qs.values('order')\
+                            .annotate(index_order_count=Count(self.sort_order_field))\
+                            .filter(index_order_count__gt=1)\
+                            .order_by('order').first()
+        if not first_duplicate:
+            return
 
-        if duplicates:
-            for n, obj in enumerate(self.model.objects.values('id')):
-                self.model.objects.filter(id=obj['id']).update(**{self.sort_order_field: n})
+        # let's retrieve all next the first duplicate found
+        lookups = {'%s__gte' % self.sort_order_field: first_duplicate[self.sort_order_field]}
+        to_reorder = qs.filter(**lookups).order_by(self.sort_order_field)\
+                       .values_list('pk', self.sort_order_field)[1:]
+                       # first one has the good order value, so we don't get it
+
+        # let's prepare our custom bulk_update to reorder the wring ordered ones
+        # (we don't use django's native bulk_update which require real model instances which is
+        # overkill in our case). When django's bulk_update will be able to accept iterable of dicts
+        # we won't need this custom bulk_update anymore.
+        field = self.model._meta.get_field(self.sort_order_field)
+        when_statements = []
+        pks = []
+        bulk_update_qs = self.get_filtered_queryset(request)
+        new_order = first_duplicate['index_order_count']
+        for pk, current_order in to_reorder:
+            new_order += 1
+            if current_order > new_order:
+                # we are ok with gaps, this one does not need to be updated
+                new_order = current_order + 1
+                continue
+            if current_order == new_order:
+                # neither this one
+                continue
+            pks.append(pk)
+            when_statements.append(When(pk=pk, then=Value(new_order, output_field=field)))
+        case_statement = Case(*when_statements, output_field=field)
+        if connections[bulk_update_qs.db].features.requires_casted_case_in_updates:
+            case_statement = Cast(case_statement, output_field=field)
+        # let's signal we will reorder some instances.
+        pre_reorder.send(
+            sender=self.__class__,
+            from_order=first_duplicate['index_order_count'] + 1,
+            to_order=new_order,
+            queryset=bulk_update_qs,
+        )
+        bulk_update_qs.filter(pk__in=pks).update(**{self.sort_order_field: case_statement})
+        # let's signal we just reorder some instances.
+        post_reorder.send(
+            sender=self.__class__,
+            from_order=first_duplicate['index_order_count'] + 1,
+            to_order=new_order,
+            queryset=bulk_update_qs,
+        )
 
     def get_index_view_extra_css(self):
         css = super(OrderableMixin, self).get_index_view_extra_css()
