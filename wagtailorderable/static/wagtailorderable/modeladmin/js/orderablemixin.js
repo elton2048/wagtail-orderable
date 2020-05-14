@@ -3,7 +3,7 @@ $(function() {
     var listing_tbody = $('.listing tbody');
     var listing_thead = $('.listing thead');
     var sorted_cols = listing_thead.find('th.sorted');
-    order_header.find('a').addClass('text-replace').removeClass('icon icon-arrow-down-after icon-arrow-up-after')
+    order_header.find('a').addClass('text-replace').removeClass('icon icon-arrow-down-after icon-arrow-up-after');
     order_header.find('a').html('<span class="icon icon-order" aria-hidden="true"></span> Sort');
     if(sorted_cols.length == 1 && order_header.hasClass('sorted') && order_header.hasClass('ascending')){
         order_header.find('a').attr('title', 'Restore default list ordering').attr('href', '?');
@@ -27,24 +27,26 @@ $(function() {
                 var movedObjectId = movedElement.data('object-pk');
                 var movedObjectTitle = movedElement.find('td.field-index_order').data('title');
 
-                // Build params
-                var params;
+                // Build params keeping current filters if this view is a child modeladmin
+                // eg: Books -> Chapters: we need to keep the current selected book
+                var params = new URL(window.location.href).searchParams;
+                var idx;
                 if ($(this).data('idx') < ui.item.index()) {
-                    var after = $(movedElement).prev().data('object-pk');
-                    if (after) {
-                        params= "?after=" + after;
+                    idx = $(movedElement).prev().data('object-pk');
+                    if (idx) {
+                        params.set('after', idx);
                     }
                 } else if ($(this).data('idx') > ui.item.index()) {
-                    var before = $(movedElement).next().data('object-pk');
-                    if (before) {
-                        params = "?before=" + before;
+                    idx = $(movedElement).next().data('object-pk');
+                    if (idx) {
+                        params.set('before', idx);
                     }
                 }
 
                 // Post
-                if (params) {
+                if (idx) {
                     $.ajax({
-                        url: 'reorder/' + movedObjectId + '/' + params,
+                        url: 'reorder/' + movedObjectId + '/?' + params.toString(),
                         success: function(data, textStatus, xhr) {
                             addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
                         },
