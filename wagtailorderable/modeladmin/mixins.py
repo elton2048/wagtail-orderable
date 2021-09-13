@@ -211,10 +211,10 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
         if the database contains any duplicate values (gaps are ok).
         """
         qs = self.get_filtered_queryset(request)
-        first_duplicate = qs.values('order')\
+        first_duplicate = qs.values(self.sort_order_field)\
                             .annotate(index_order_count=Count(self.sort_order_field))\
                             .filter(index_order_count__gt=1)\
-                            .order_by('order').first()
+                            .order_by(self.sort_order_field).first()
         if not first_duplicate:
             return
 
