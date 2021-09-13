@@ -23,7 +23,7 @@ INSTALLED_APPS = [
 
 ### Usage
 
-#### Extends with `Orderable` (optionnal)
+#### Extend with `Orderable` (optional)
 
 To apply the orderable feature, you can extend your model with `Orderable` which will add
 a `sort_order` `IntegerField` to your model but if you already have a field to store
@@ -81,14 +81,14 @@ class YourModelAdmin(OrderableMixin, ModelAdmin):
 
 class YourOtherModelAdmin(OrderableMixin, ModelAdmin):
     model = YourOtherModel
-    index_order_field = 'my_custom_order_field'
+    sort_order_field = 'my_custom_order_field'
 
 modeladmin_register(YourModelAdmin)
 modeladmin_register(YourOtherModelAdmin)
 ```
 
-Note that `index_order_field` is optionnal if you extends your model with `Orderable`
-or if your Model has a `index_order_field` attribute.
+Note that `sort_order_field` is optional if you extend your model with `Orderable`
+or if your Model has a `sort_order_field` attribute.
 
 Finally, collect the corresponding static file by running
 ```python
