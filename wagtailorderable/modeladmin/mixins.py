@@ -146,8 +146,8 @@ class OrderableMixin(object):
         ).annotate(sort_order_count=Count('sort_order')).filter(sort_order_count__gt=1)
 
         if duplicates:
-            for n, obj in enumerate(self.model.objects.values('id')):
-                self.model.objects.filter(id=obj['id']).update(sort_order=n)
+            for n, obj in enumerate(self.model.objects.values('pk')):
+                self.model.objects.filter(pk=obj['pk']).update(sort_order=n)
 
     def get_index_view_extra_css(self):
         css = super(OrderableMixin, self).get_index_view_extra_css()
