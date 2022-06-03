@@ -73,6 +73,9 @@ python manage.py collectstatic
 in your project.
 
 ### Change Log
+## [Unreleased]
+- Add support for Wagtail 3.0 and drop support for all Wagtail versions
+   before 2.15
 1.0.3
 ---
 - Fix `TypeError` when creating the first Orderable object (#21)
