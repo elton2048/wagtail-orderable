@@ -19,13 +19,13 @@ class OrderableMixin(object):
         super(OrderableMixin, self).__init__(parent)
         """
         Don't allow initialisation unless self.model subclasses
-        `wagtail.wagtailcore.models.Orderable`
+        `wagtail.models.Orderable`
         """
         if not issubclass(self.model, Orderable):
             raise ImproperlyConfigured(
                 u"You are using OrderableMixin for your '%s' class, but the "
                 "django model specified is not a sub-class of "
-                "'wagtail.wagtailcore.models.Orderable." %
+                "'wagtail.models.Orderable." %
                 self.__class__.__name__,)
 
     def get_list_display(self, request):
