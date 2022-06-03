@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 INSTALL_REQUIRES = [
-    "wagtail>=2.0,<3.0",
+    "wagtail>=2.15,<4.0",
 ]
 
 CLASSIFIERS = [
@@ -16,13 +16,18 @@ CLASSIFIERS = [
     'Intended Audience :: Developers',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Framework :: Django',
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
     'License :: OSI Approved :: zlib/libpng License',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
-    'Programming Language :: Python :: 3.6',
-    'Framework :: Wagtail',
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Framework :: Wagtail",
+    "Framework :: Wagtail :: 2",
+    "Framework :: Wagtail :: 3",
 ]
 
 class VerifyVersionCommand(install):
