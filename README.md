@@ -73,9 +73,12 @@ python manage.py collectstatic
 in your project.
 
 ### Change Log
-## [Unreleased]
+1.0.4
+---
+- Provide Github Actions script to build and publish package in PyPI
 - Add support for Wagtail 3.0 and drop support for all Wagtail versions
-   before 2.15
+   before 2.15 (#32)
+- Use `pk` instead of `id` for duplicate positions (#31)
 1.0.3
 ---
 - Fix `TypeError` when creating the first Orderable object (#21)
