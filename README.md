@@ -41,8 +41,8 @@ class YourModel(Orderable):
 
 Of course you can apply it to Wagtail's `Page` model.
 ```python
-from wagtail.core import fields
-from wagtail.core.models import Page
+from wagtail import fields
+from wagtail.models import Page
 
 from wagtailorderable.models import Orderable
 
@@ -52,7 +52,7 @@ class YourModel(Page, Orderable):
 ```
 
 
-Or just use your model with your personnal ordering field.
+Or just use your model with your personal ordering field.
 
 ```python
 from django.db import models
@@ -63,7 +63,7 @@ class YourOtherModel(models.Model):
     my_custom_order_field = models.IntegerField(null=False, blank=True, default=0, editable=False)
 ```
 
-Note that `Orderable` also exists in `wagtail.core.models`, **DO NOT** use that as the mixins require the model from the same package.
+Note that `Orderable` also exists in `wagtail.models`, **DO NOT** use that as the mixins require the model from the same package.
 
 To apply the feature support in admin panel. In `wagtail_hooks.py`:
 ```python
@@ -91,7 +91,7 @@ Note that `sort_order_field` is optional if you extend your model with `Orderabl
 or if your Model has a `sort_order_field` attribute.
 
 Finally, collect the corresponding static file by running
-```python
+```shell
 python manage.py collectstatic
 ```
 in your project.
