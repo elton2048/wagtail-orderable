@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 INSTALL_REQUIRES = [
-    "wagtail>=2.15,<4.0",
+    "wagtail>=2.15",
 ]
 
 CLASSIFIERS = [
