@@ -1,19 +1,16 @@
-.result-list {
-    tbody {
-        overflow: auto;
-    }
+.result-list tbody {
+    overflow: auto;
+}
 
-    tr > td {
-        background-color: inherit;
-    }
+.result-list tr > td {
+    background-color: inherit;
+}
 
-    tr.ui-sortable-helper {
-        background-color: #fff;
-
-        .visible-on-drag {
-            display: table-cell;
-        }
-    }
+.result-list tr.ui-sortable-helper {
+    background-color: #fff;
+}
+.result-list tr.ui-sortable-helper .visible-on-drag {
+    display: table-cell;
 }
 
 td.field-index_order > div.icon {
