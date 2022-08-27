@@ -98,7 +98,7 @@ in your project.
 
 ### Change Log
 
-[Unreleased]
+1.1.0
 ---
 - Extending `Orderable` is no more mandatory if you want to use your own order field (#27)
 - Add `Orderable.get_sort_order_max()` to get the max "order" when instance is being created (#27)
