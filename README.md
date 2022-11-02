@@ -98,6 +98,11 @@ in your project.
 
 ### Change Log
 
+Unreleased
+---
+- Updated documentation for wagtail 4.0 support
+- Updated workflow action versions
+
 1.1.0
 ---
 - Extending `Orderable` is no more mandatory if you want to use your own order field (#27)

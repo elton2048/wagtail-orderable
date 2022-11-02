@@ -19,6 +19,7 @@ CLASSIFIERS = [
     "Framework :: Django",
     "Framework :: Django :: 3.2",
     "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
     'License :: OSI Approved :: zlib/libpng License',
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
@@ -28,6 +29,7 @@ CLASSIFIERS = [
     "Framework :: Wagtail",
     "Framework :: Wagtail :: 2",
     "Framework :: Wagtail :: 3",
+    "Framework :: Wagtail :: 4",
 ]
 
 class VerifyVersionCommand(install):
