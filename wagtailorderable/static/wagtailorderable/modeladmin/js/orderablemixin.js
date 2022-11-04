@@ -5,7 +5,8 @@ $(function() {
     var sorted_cols = listing_thead.find('th.sorted');
     order_header.find('a').addClass('text-replace').removeClass('icon icon-arrow-down-after icon-arrow-up-after');
     order_header.find('a').html('<span class="icon icon-order" aria-hidden="true"></span> Sort');
-    if(sorted_cols.length == 1 && order_header.hasClass('sorted') && order_header.hasClass('ascending')){
+    if(sorted_cols.length === 1 && order_header.hasClass('sorted')){
+        var isAsc = order_header.hasClass('ascending');
         order_header.find('a').attr('title', 'Restore default list ordering').attr('href', '?');
         listing_tbody.sortable({
             cursor: "move",
@@ -34,12 +35,12 @@ $(function() {
                 if ($(this).data('idx') < ui.item.index()) {
                     idx = $(movedElement).prev().data('object-pk');
                     if (idx) {
-                        params.set('after', idx);
+                        params.set(isAsc ? 'after' : 'before', idx);
                     }
                 } else if ($(this).data('idx') > ui.item.index()) {
                     idx = $(movedElement).next().data('object-pk');
                     if (idx) {
-                        params.set('before', idx);
+                        params.set(isAsc ? 'before' : 'after', idx);
                     }
                 }
 
@@ -66,6 +67,6 @@ $(function() {
         var href = new URL(window.location.href);  // we need to keep current filters
         href.searchParams.set('o', '0');
         a.attr('href', href.toString());
-        order_header.removeClass('sorted ascending');
+        order_header.removeClass('sorted ascending descending');
     }
 });
