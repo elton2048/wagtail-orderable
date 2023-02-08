@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 INSTALL_REQUIRES = [
-    "wagtail>=2.15",
+    "wagtail>=4.1",
 ]
 
 CLASSIFIERS = [
@@ -26,9 +26,8 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Framework :: Wagtail",
-    "Framework :: Wagtail :: 2",
-    "Framework :: Wagtail :: 3",
     "Framework :: Wagtail :: 4",
 ]
 
