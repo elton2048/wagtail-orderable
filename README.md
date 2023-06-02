@@ -103,6 +103,7 @@ Unreleased
 - Updated documentation for wagtail 4.0 support
 - Updated workflow action versions
 - Allow wagtail v4.1+ (drops ability to use on a wagtail site version earlier than v4.1)
+- Allow Wagtail v5 and Django v4.2
 
 1.1.0
 ---
