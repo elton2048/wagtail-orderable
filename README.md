@@ -98,7 +98,7 @@ in your project.
 
 ### Change Log
 
-Unreleased
+1.2.0
 ---
 - Updated documentation for wagtail 4.0 support
 - Updated workflow action versions
