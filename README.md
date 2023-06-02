@@ -35,14 +35,14 @@ from django.db import models
 from wagtailorderable.models import Orderable
 
 
-class YourModel(models.Model, Orderable):
+class YourModel(Orderable):
     title = models.CharField(max_length=200)
 ```
 
 Of course you can apply it to Wagtail's `Page` model.
 ```python
-from wagtail.core import fields
-from wagtail.core.models import Page
+from wagtail import fields
+from wagtail.models import Page
 
 from wagtailorderable.models import Orderable
 
@@ -51,8 +51,7 @@ class YourModel(Page, Orderable):
     description = fields.RichTextField(blank=True)
 ```
 
-
-Or just use your model with your personnal ordering field.
+Or just use your model with your personal ordering field.
 
 ```python
 from django.db import models
@@ -63,7 +62,7 @@ class YourOtherModel(models.Model):
     my_custom_order_field = models.IntegerField(null=False, blank=True, default=0, editable=False)
 ```
 
-Note that `Orderable` also exists in `wagtail.core.models`, **DO NOT** use that as the mixins require the model from the same package.
+Note that `Orderable` also exists in `wagtail.models`, **DO NOT** use that as the mixins require the model from the same package.
 
 To apply the feature support in admin panel. In `wagtail_hooks.py`:
 ```python
@@ -91,20 +90,34 @@ Note that `sort_order_field` is optional if you extend your model with `Orderabl
 or if your Model has a `sort_order_field` attribute.
 
 Finally, collect the corresponding static file by running
-```python
+```shell
 python manage.py collectstatic
 ```
 in your project.
 
 ### Change Log
 
-1.0.4
+Unreleased
+---
+- Updated documentation for wagtail 4.0 support
+- Updated workflow action versions
+- Allow wagtail v4.1+ (drops ability to use on a wagtail site version earlier than v4.1)
+- Allow Wagtail v5 and Django v4.2
+
+1.1.0
 ---
 - Extending `Orderable` is no more mandatory if you want to use your own order field (#27)
 - Add `Orderable.get_sort_order_max()` to get the max "order" when instance is being created (#27)
 - Fix keeping current filters when sorting was reset (#27)
 - Fix class names (`get_extra_class_names_for_field_col` parameters were inverted) (#27)
 - Fix CSS which had SCSS syntax (#27)
+
+1.0.4
+---
+- Provide Github Actions script to build and publish package in PyPI
+- Add support for Wagtail 3.0 and drop support for all Wagtail versions
+   before 2.15 (#32)
+- Use `pk` instead of `id` for duplicate positions (#31)
 
 1.0.3
 ---

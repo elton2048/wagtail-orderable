@@ -6,7 +6,7 @@ class Orderable(models.Model):
     """
     Orderable class to add drag-and-drop ordering support to the ModelAdmin listing
     view. It is very similar to the Orderable class in
-    `wagtail.core.models.Orderable` excepts it saves the sort_order initially
+    `wagtail.models.Orderable` excepts it saves the sort_order initially
     if the object is new by checking whether the pk(Default Primary Key) field
     is None or not.
 

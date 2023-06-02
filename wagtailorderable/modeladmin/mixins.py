@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.urls import re_path
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured, PermissionDenied
 from django.db import connections, transaction
 from django.db.models import F, Count
@@ -7,8 +8,10 @@ from django.db.models.functions import Cast
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
-from ..signal import pre_reorder, post_reorder
+from django.utils.translation import gettext_lazy as _
+
+from ..signals import pre_reorder, post_reorder
+
 
 class OrderableMixinMetaClass(type):
     """
@@ -21,7 +24,7 @@ class OrderableMixinMetaClass(type):
         if model and not sort_order_field:
             sort_order_field = getattr(model, 'sort_order_field', None)
         if sort_order_field:
-            # unfortunately, wagtail IndexView._get_default_ordering is curently using
+            # unfortunately, wagtail IndexView._get_default_ordering is currently using
             # `model_admin.ordering` instead of `model_admin.get_ordering()`
             # So we need to automagically set it here
             if 'ordering' not in attrs:
@@ -54,8 +57,10 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
 
     def __init__(self, parent=None):
         super(OrderableMixin, self).__init__(parent)
-        # Don't allow initialisation unless self.model subclasses
-        # `wagtail.wagtailcore.models.Orderable` or sort_order_field is set
+        """
+        Don't allow initialisation unless self.model subclasses
+        `wagtail.models.Orderable` or sort_order_field is set
+        """
         if not self.sort_order_field and hasattr(self.model, 'sort_order_field'):
             self.sort_order_field = getattr(self.model, 'sort_order_field', None)
 
@@ -63,7 +68,7 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
             raise ImproperlyConfigured(
                 u"You are using OrderableMixin for your '%(cls)s' class, but the "
                 "django model specified is not a sub-class of "
-                "'wagtail.wagtailcore.models.Orderable and you did not set "
+                "'wagtail.models.Orderable and you did not set "
                 "'%(cls)s.sort_order_field'." % {'cls': self.__class__.__name__}
             )
         try:
@@ -121,7 +126,6 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
                 'width': 20,
             })
         return attrs
-
 
     def get_extra_class_names_for_field_col(self, obj, field_name):
         """
@@ -276,7 +280,7 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
     def get_admin_urls_for_registration(self):
         urls = super(OrderableMixin, self).get_admin_urls_for_registration()
         urls += (
-            url(
+            re_path(
                 self.url_helper.get_action_url_pattern('reorder'),
                 view=self.reorder_view,
                 name=self.url_helper.get_action_url_name('reorder')
