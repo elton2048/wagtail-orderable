@@ -12,6 +12,10 @@ from django.utils.translation import gettext_lazy as _
 from ..signals import pre_reorder, post_reorder
 
 
+def ordering_contains_field(ordering, field_name):
+    return bool(set(ordering) & {field_name, "-" + field_name})
+
+
 class OrderableMixinMetaClass(type):
     """
     index_order method needs to be completed with an `admin_order_field` but as sort_order_field
@@ -23,12 +27,16 @@ class OrderableMixinMetaClass(type):
         if model and not sort_order_field:
             sort_order_field = getattr(model, 'sort_order_field', None)
         if sort_order_field:
-            # unfortunately, wagtail IndexView._get_default_ordering is currently using
-            # `model_admin.ordering` instead of `model_admin.get_ordering()`
-            # So we need to automagically set it here
+            # Ensure, that our sort field is set in "ordering", as this attribute is required by methods like
+            # wagtail's IndexView._get_default_ordering().
             if 'ordering' not in attrs:
-                attrs['ordering'] = (sort_order_field, )
-            elif sort_order_field not in attrs['ordering']:
+                opts = model._meta
+                if opts.ordering and ordering_contains_field(opts.ordering, sort_order_field):
+                    # If the model's Meta already defines an ordering with our field, we use it.
+                    attrs['ordering'] = opts.ordering
+                else:
+                    attrs['ordering'] = (sort_order_field, )
+            elif not ordering_contains_field(attrs['ordering'], sort_order_field):
                 attrs['ordering'] = (sort_order_field, ) + tuple(attrs['ordering'])
 
             # set the "sorting" column
@@ -78,17 +86,6 @@ class OrderableMixin(object, metaclass=OrderableMixinMetaClass):
                 "'sort_order_field' is set to '%s' which does not exists "
                 "into your model." %
                 (self.__class__.__name__, self.sort_order_field))
-
-    def get_ordering(self, request):
-        """
-        Returns a sequence defining the default ordering for results in the
-        list view.
-        """
-        if not self.ordering:
-            return (self.sort_order_field, )
-        elif self.sort_order_field not in self.ordering:
-            return (self.sort_order_field, ) + tuple(self.ordering)
-        return self.ordering
 
     def get_list_display(self, request):
         """Add `index_order` as the first column to results"""
