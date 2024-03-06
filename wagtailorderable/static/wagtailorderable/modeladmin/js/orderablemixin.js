@@ -48,10 +48,14 @@ $(function() {
                     $.ajax({
                         url: 'reorder/' + movedObjectId + '/?' + params.toString(),
                         success: function(data, textStatus, xhr) {
-                            addMessage('success', '"' + movedObjectTitle + '" has been moved successfully.');
+                            const text = '"' + movedObjectTitle + '" has been moved successfully.';
+                            const event = new CustomEvent('w-messages:add', { detail: { clear: true, text,  type: 'success' } });
+                            document.dispatchEvent(event);
                         },
                         error: function(data, textStatus, xhr) {
-                            addMessage('error', '"' + movedObjectTitle + '" could not be moved.');
+                            const text = '"' + movedObjectTitle + '" could not be moved.';
+                            const event = new CustomEvent('w-messages:add', { detail: { clear: true, text,  type: 'error' } });
+                            document.dispatchEvent(event);
                             listing_tbody.sortable("cancel");
                         }
                     });

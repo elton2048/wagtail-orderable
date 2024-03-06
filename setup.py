@@ -7,7 +7,8 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 INSTALL_REQUIRES = [
-    "wagtail>=4.1",
+    "wagtail>=5.2",
+    "wagtail-modeladmin>=2.0.0",
 ]
 
 CLASSIFIERS = [
@@ -18,7 +19,6 @@ CLASSIFIERS = [
     'Programming Language :: Python',
     "Framework :: Django",
     "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4.1",
     "Framework :: Django :: 4.2",
     'License :: OSI Approved :: zlib/libpng License',
     "Programming Language :: Python :: 3",
@@ -26,9 +26,12 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Framework :: Wagtail",
     "Framework :: Wagtail :: 4",
     "Framework :: Wagtail :: 5",
+    "Framework :: Wagtail :: 6",
+
 ]
 
 class VerifyVersionCommand(install):

@@ -6,7 +6,7 @@ from django.db.models.expressions import Case, Value, When
 from django.db.models.functions import Cast
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
-from django.utils.safestring import mark_safe
+from django.template.loader import get_template
 from django.utils.translation import gettext_lazy as _
 
 from ..signals import pre_reorder, post_reorder
@@ -35,10 +35,8 @@ class OrderableMixinMetaClass(type):
             if 'index_order' not in attrs:
                 def index_order(self, obj):
                     """Content for the `index_order` column"""
-                    return mark_safe((
-                        '<div class="handle icon icon-grip text-replace ui-sortable-handle">'
-                        '%s</div>'
-                    ) % _('Drag'))
+                    template = get_template('wagtailorderable/index_order.html')
+                    return template.render()
                 index_order.admin_order_field = sort_order_field
                 index_order.short_description = _('Order')
                 attrs['index_order'] = index_order
